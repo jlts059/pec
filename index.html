@@ -124,11 +124,11 @@
             if (lowerName.includes('notas')) {
                 link.onclick = function(e) {
                     e.preventDefault();
-                    const password = prompt("Introduce la contraseña para acceder a las Notas:");
+                    const password = prompt("psw?:");
                     if (password === "468") {
                         window.location.href = file.path;
                     } else if (password !== null) {
-                        alert("Contraseña incorrecta. Acceso denegado.");
+                        alert("wrong");
                     }
                 };
             } else {
