@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apps</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: false, 
+            theme: 'neutral',
+            securityLevel: 'loose'
+        });
+    </script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; line-height: 1.6; max-width: 800px; margin: auto; background-color: #f9f9f9; }
+        h1 { border-bottom: 2px solid #333; padding-bottom: 10px; text-align: center; color: #2c3e50; }
+        
+        /* Contenedor único para todas las pestañas */
+        .tabs-container { margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 15px; }
+        
+        .tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+        .tab-button {
+            padding: 12px 24px; cursor: pointer; border: none; background: #eee;
+            border-radius: 8px; font-weight: bold; transition: 0.3s; font-size: 0.95em;
+        }
+        .tab-button.active { background: #0366d6; color: white; }
+        .tab-button:hover:not(.active) { background: #ddd; }
+
+        .tab-content { display: none; animation: fadeIn 0.5s; }
+        .tab-content.active { display: block; }
+
+        /* Estilos para los bloques Collapsibles (Subcarpetas) */
+        details.app-group {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+        details.app-group:hover { border-color: #0366d6; }
+        
+        summary.app-group-title {
+            padding: 14px;
+            font-size: 0.95em;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #334155;
+            cursor: pointer;
+            user-select: none;
+            background: #e2e8f0;
+            letter-spacing: 0.5px;
+            outline: none;
+        }
+        details.app-group[open] summary.app-group-title {
+            border-bottom: 1px solid #cbd5e1;
+            background: #cbd5e1;
+        }
+        
+        .app-group-content {
+            padding: 12px 12px 4px 12px;
+        }
+
+        /* Estilos de los enlaces de las apps */
+        .app-link {
+            display: flex; align-items: center; padding: 12px; margin-bottom: 8px;
+            background: white; text-decoration: none; color: #333;
+            border-radius: 8px; border: 1px solid #e2e8f0; font-weight: 500; transition: 0.2s;
+        }
+        .app-link:hover { transform: translateX(5px); border-color: #0366d6; box-shadow: 2px 2px 10px rgba(0,0,0,0.06); }
+        .icon { margin-right: 15px; font-size: 1.2em; }
+
+        /* Estilos para tu panel visual de Notas */
+        .diagram-container {
+            margin-top: 40px;
+            padding: 20px;
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+        .diagram-title {
+            font-size: 0.85em; text-transform: uppercase; color: #888; 
+            margin-bottom: 15px; font-weight: bold; letter-spacing: 1px;
+            border-bottom: 1px dashed #eee; padding-bottom: 5px;
+        }
+        .mermaid-wrapper {
+            display: flex; justify-content: center; overflow-x: auto; width: 100%; padding: 10px 0;
+            min-height: 50px;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        #loading { text-align: center; color: #666; font-style: italic; margin-top: 50px; }
+    </style>
+</head>
+<body>
+
+    <h1>🚀 Apps</h1>
+    
+    <div id="loading">Conectando con tu repositorio...</div>
+    
+    <!-- Barra única de pestañas principales automáticas -->
+    <div class="tabs-container" id="menu-wrapper" style="display: none;">
+        <div id="main-tabs" class="tabs"></div>
+    </div>
+
+    <div id="contents-container"></div>
+
+    <div id="diagram-section" class="diagram-container" style="display: none;">
+        <div class="diagram-title">📊 Type of Input & Output (Mis Notas)</div>
+        <div class="mermaid-wrapper">
+            <div id="diagram-target"></div>
+        </div>
+    </div>
+
+    <script>
+        const repoOwner = 'jlts059';
+        const repoName = 'apps';
+
+        // Emojis personalizados para tus pestañas principales automáticas
+        const tabEmojis = {
+            'aleman': '🍺',
+            'ingles': '☕',
+            'plantillas': '📋',
+            'utilidades': '🛠️',
+            'self': '👤',
+            'varios': '📦'
+        };
+
+        // Clasificación inteligente y 100% automatizada
+        function analizarRuta(path) {
+            const pathParts = path.split('/');
+            let nombreTab = 'varios';
+            let subGrupo = ''; 
+
+            if (pathParts.length > 1) {
+                const rootFolder = pathParts[0].toLowerCase();
+                
+                // Agrupación especial para idiomas (raíz como pestaña, segundo nivel como subgrupo)
+                if (rootFolder === 'aleman' || rootFolder === 'al_') {
+                    nombreTab = 'aleman';
+                    subGrupo = pathParts[1]; 
+                } 
+                else if (rootFolder === 'ingles' || rootFolder === 'in_') {
+                    nombreTab = 'ingles';
+                    subGrupo = pathParts[1];
+                } 
+                // Cualquier otra carpeta raíz se vuelve su propia pestaña
+                else {
+                    nombreTab = rootFolder;
+                    // Si además tiene subcarpetas dentro, se vuelven subgrupos collapsibles
+                    if (pathParts.length > 2) {
+                        subGrupo = pathParts[1];
+                    }
+                }
+            }
+            return { nombreTab, subGrupo };
+        }
+
+        async function cargarProyectos() {
+            inyectarNotasDesdeTxt();
+            
+            try {
+                const url = `https://api.github.com/repos/${repoOwner}/${repoName}/git/trees/main?recursive=1`;
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("API bloqueada");
+                const data = await response.json();
+                const items = data.tree || [];
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('menu-wrapper').style.display = 'block';
+
+                // 1. Filtrar archivos HTML válidos (ignorando el index principal)
+                const htmlFiles = items.filter(item => 
+                    item.type === 'blob' && 
+                    item.path.endsWith('.html') && 
+                    !item.path.toLowerCase().endsWith('index.html')
+                );
+
+                // 🔥 CORRECCIÓN DE ORDEN: Ordenamos todos los archivos alfabéticamente por su ruta completa
+                htmlFiles.sort((a, b) => a.path.localeCompare(b.path));
+
+                // FASE 1: Descubrir y crear automáticamente los botones de las pestañas reales que existan (en orden A-Z)
+                const listasCreadas = new Set();
+                htmlFiles.forEach(item => {
+                    const info = analizarRuta(item.path);
+                    if (!listasCreadas.has(info.nombreTab)) {
+                        createTab(info.nombreTab);
+                        listasCreadas.add(info.nombreTab);
+                    }
+                });
+
+                // FASE 2: Inyectar los archivos dentro de sus pestañas (se meterán ordenados y con colapsibles cerrados)
+                htmlFiles.forEach(item => {
+                    const info = analizarRuta(item.path);
+                    renderFile(item, info.nombreTab, info.subGrupo);
+                });
+
+                // Abrir la primera pestaña que se haya generado de forma automática
+                if (listasCreadas.size > 0) {
+                    const primeraTab = Array.from(listasCreadas)[0];
+                    openTab(primeraTab);
+                }
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('loading').innerText = "Cargando tus aplicaciones...";
+            }
+        }
+
+        function createTab(name) {
+            const tabsContainer = document.getElementById('main-tabs');
+            const contentsContainer = document.getElementById('contents-container');
+            
+            if (document.getElementById(`btn-${name}`)) return;
+
+            const cleanKey = name.toLowerCase();
+            const emoji = tabEmojis[cleanKey] || '📁';
+            const displayName = name.charAt(0).toUpperCase() + name.slice(1).replace(/_/g, ' ');
+
+            const btn = document.createElement('button');
+            btn.className = 'tab-button';
+            btn.id = `btn-${name}`;
+            btn.innerHTML = `${emoji} ${displayName}`;
+            btn.onclick = () => openTab(name);
+            tabsContainer.appendChild(btn);
+
+            const contentDiv = document.createElement('div');
+            contentDiv.id = name;
+            contentDiv.className = 'tab-content';
+            contentsContainer.appendChild(contentDiv);
+        }
+
+        function renderFile(file, containerId, subGrupo) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            // Si el archivo pertenece a una subcarpeta, se crea el acordeón collapsible cerrado por defecto
+            if (subGrupo) {
+                const subGrupoId = `${containerId}-group-${subGrupo}`;
+                let subGroupContent = document.getElementById(`${subGrupoId}-content`);
+                
+                if (!subGroupContent) {
+                    const detailsWrapper = document.createElement('details');
+                    detailsWrapper.className = 'app-group';
+                    detailsWrapper.id = subGrupoId;
+                    detailsWrapper.setAttribute('data-name', subGrupo.toLowerCase());
+                    
+                    const summaryTitle = document.createElement('summary');
+                    summaryTitle.className = 'app-group-title';
+                    summaryTitle.innerText = `📂 ${subGrupo.replace(/_/g, ' ')}`;
+                    
+                    subGroupContent = document.createElement('div');
+                    subGroupContent.className = 'app-group-content';
+                    subGroupContent.id = `${subGrupoId}-content`;
+                    
+                    detailsWrapper.appendChild(summaryTitle);
+                    detailsWrapper.appendChild(subGroupContent);
+                    
+                    // Insertar el bloque de forma ordenada alfabéticamente dentro del contenedor principal
+                    const existingGroups = Array.from(container.querySelectorAll('details.app-group'));
+                    const insertBeforeNode = existingGroups.find(group => 
+                        group.getAttribute('data-name').localeCompare(subGrupo.toLowerCase()) > 0
+                    );
+                    
+                    if (insertBeforeNode) {
+                        container.insertBefore(detailsWrapper, insertBeforeNode);
+                    } else {
+                        container.appendChild(detailsWrapper);
+                    }
+                }
+                renderLinkElement(file, subGroupContent);
+            } else {
+                // Si el archivo está suelto directo en la pestaña raíz, se dibuja libre sin acordeón
+                renderLinkElement(file, container);
+            }
+        }
+
+        function renderLinkElement(file, parentTarget) {
+            const link = document.createElement('a');
+            link.href = file.path;
+            link.className = 'app-link';
+            
+            const fileName = file.path.split('/').pop();
+            
+            let fileIcon = '📄';
+            const n = fileName.toLowerCase();
+            if (n.includes('ruleta') || n.includes('wheel')) fileIcon = '🎲';
+            if (n.includes('quiz')) fileIcon = '📝';
+            if (n.includes('qr') || n.includes('drive')) fileIcon = '🔳';
+
+            const cleanName = fileName.replace('.html', '').replace(/-/g, ' ');
+            link.innerHTML = `<span class="icon">${fileIcon}</span> ${cleanName}`;
+            parentTarget.appendChild(link);
+        }
+
+        function openTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(tb => tb.classList.remove('active'));
+            
+            const targetContent = document.getElementById(tabId);
+            const targetBtn = document.getElementById(`btn-${tabId}`);
+            
+            if(targetContent) targetContent.classList.add('active');
+            if(targetBtn) targetBtn.classList.add('active');
+        }
+
+        async function inyectarNotasDesdeTxt() {
+            const target = document.getElementById('diagram-target');
+            const section = document.getElementById('diagram-section');
+            
+            try {
+                const response = await fetch('vault/input-output.txt?v=' + new Date().getTime());
+                if (!response.ok) throw new Error("No disponible");
+                
+                const textoRaw = await response.text();
+                
+                if (textoRaw.trim().length > 0) {
+                    section.style.display = 'block';
+                    target.className = "mermaid";
+                    target.textContent = textoRaw;
+                    await mermaid.run();
+                }
+            } catch (err) {
+                console.log("Esperando archivo separado válido o entorno online.");
+                section.style.display = 'none';
+            }
+        }
+
+        cargarProyectos();
+    </script>
+</body>
+</html>
