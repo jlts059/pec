@@ -97,6 +97,9 @@
                     renderLinkElement(item, container);
                 });
 
+                // Agregar el enlace protegido al Google Doc al final de la lista
+                renderGoogleDocLink(container);
+
             } catch (error) {
                 console.error(error);
                 document.getElementById('loading').innerText = "Cargando tus aplicaciones...";
@@ -124,16 +127,34 @@
             if (lowerName.includes('notas')) {
                 link.onclick = function(e) {
                     e.preventDefault();
-                    const password = prompt("psw?:");
+                    const password = prompt("Introduce la contraseña para acceder a las Notas:");
                     if (password === "468") {
                         window.location.href = file.path;
                     } else if (password !== null) {
-                        alert("wrong");
+                        alert("Contraseña incorrecta. Acceso denegado.");
                     }
                 };
             } else {
                 link.href = file.path;
             }
+
+            parentTarget.appendChild(link);
+        }
+
+        function renderGoogleDocLink(parentTarget) {
+            const link = document.createElement('a');
+            link.className = 'app-link';
+            link.innerHTML = `<span class="icon">📘</span> Google Doc Protegido`;
+            
+            link.onclick = function(e) {
+                e.preventDefault();
+                const password = prompt("Introduce la contraseña para acceder al documento:");
+                if (password === "468") {
+                    window.open("https://docs.google.com/document/d/1YzeZp2yZ_1qzfORuDd4ZH4tsknlAbMh9MX9_Cp1Hzog/view?tab=t.0#heading=h.gryr64en6rkb", "_blank");
+                } else if (password !== null) {
+                    alert("Contraseña incorrecta. Acceso denegado.");
+                }
+            };
 
             parentTarget.appendChild(link);
         }
