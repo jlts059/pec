@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apps</title>
+    <title>PEC</title>
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <script>
         mermaid.initialize({ 
@@ -96,11 +96,10 @@
 </head>
 <body>
 
-    <h1>🚀 Apps</h1>
+    <h1>🎓 PEC</h1>
     
     <div id="loading">Conectando con tu repositorio...</div>
     
-    <!-- Barra única de pestañas principales automáticas -->
     <div class="tabs-container" id="menu-wrapper" style="display: none;">
         <div id="main-tabs" class="tabs"></div>
     </div>
@@ -116,7 +115,7 @@
 
     <script>
         const repoOwner = 'jlts059';
-        const repoName = 'apps';
+        const repoName = 'pec';
 
         // Emojis personalizados para tus pestañas principales automáticas
         const tabEmojis = {
@@ -178,7 +177,7 @@
                     !item.path.toLowerCase().endsWith('index.html')
                 );
 
-                // 🔥 CORRECCIÓN DE ORDEN: Ordenamos todos los archivos alfabéticamente por su ruta completa
+                // Ordenamos todos los archivos alfabéticamente por su ruta completa
                 htmlFiles.sort((a, b) => a.path.localeCompare(b.path));
 
                 // FASE 1: Descubrir y crear automáticamente los botones de las pestañas reales que existan (en orden A-Z)
