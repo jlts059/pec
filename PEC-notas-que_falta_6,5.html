@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora de Certificación</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f4f7f6;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    .grid-container {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .columna {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    label {
+      font-weight: bold;
+      margin-bottom: 2px;
+    }
+    .total-info {
+      font-size: 0.85em;
+      color: #666;
+      margin-bottom: 8px;
+    }
+    .flecha {
+      margin: 6px 0;
+      font-size: 1.1em;
+      color: #888;
+    }
+    input {
+      width: 110px;
+      padding: 6px;
+      text-align: center;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    /* Contenedor editable para aplicar estilos mixtos */
+    .scale-input {
+      font-weight: normal;
+      color: #000;
+    }
+
+    .scale-input.calculado {
+      color: blue;
+      font-weight: bold;
+    }
+
+    /* Estilo para el texto secundario en gris dentro de la casilla */
+    .exact-note {
+      color: #888;
+      font-weight: normal;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Nota necesaria para alcanzar el 6,5</h2>
+  
+  <div class="grid-container">
+    <div class="columna">
+      <label>CE</label>
+      <span class="total-info">/26</span>
+      <input type="number" id="raw-0" placeholder="Nota" oninput="onRawChange(0)">
+      <span class="flecha">↓</span>
+      <div contenteditable="true" class="scale-input input-box" id="scale-0" oninput="onScaleChange(0)"></div>
+    </div>
+
+    <div class="columna">
+      <label>CO</label>
+      <span class="total-info">/26</span>
+      <input type="number" id="raw-1" placeholder="Nota" oninput="onRawChange(1)">
+      <span class="flecha">↓</span>
+      <div contenteditable="true" class="scale-input input-box" id="scale-1" oninput="onScaleChange(1)"></div>
+    </div>
+
+    <div class="columna">
+      <label>MED</label>
+      <span class="total-info">/40</span>
+      <input type="number" id="raw-2" placeholder="Nota" oninput="onRawChange(2)">
+      <span class="flecha">↓</span>
+      <div contenteditable="true" class="scale-input input-box" id="scale-2" oninput="onScaleChange(2)"></div>
+    </div>
+
+    <div class="columna">
+      <label>PE</label>
+      <span class="total-info">/160</span>
+      <input type="number" id="raw-3" placeholder="Nota" oninput="onRawChange(3)">
+      <span class="flecha">↓</span>
+      <div contenteditable="true" class="scale-input input-box" id="scale-3" oninput="onScaleChange(3)"></div>
+    </div>
+
+    <div class="columna">
+      <label>PO</label>
+      <span class="total-info">/200</span>
+      <input type="number" id="raw-4" placeholder="Nota" oninput="onRawChange(4)">
+      <span class="flecha">↓</span>
+      <div contenteditable="true" class="scale-input input-box" id="scale-4" oninput="onScaleChange(4)"></div>
+    </div>
+  </div>
+
+  <style>
+    /* Estilos para simular un input con div editable */
+    .input-box {
+      width: 100px;
+      height: 20px;
+      padding: 6px;
+      text-align: center;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      background: white;
+      overflow: hidden;
+      white-space: nowrap;
+      line-height: 20px;
+    }
+  </style>
+
+  <script>
+    const totals = [26, 26, 40, 160, 200];
+    const isManual = [false, false, false, false, false];
+    const userValues = [null, null, null, null, null];
+
+    function onRawChange(index) {
+      const rawInput = document.getElementById(`raw-${index}`);
+      const scaleInput = document.getElementById(`scale-${index}`);
+      const val = parseFloat(rawInput.value);
+
+      if (!isNaN(val)) {
+        const converted = (val / totals[index]) * 10;
+        userValues[index] = parseFloat(converted.toFixed(2));
+        scaleInput.textContent = userValues[index];
+        isManual[index] = true;
+      } else {
+        scaleInput.textContent = '';
+        userValues[index] = null;
+        isManual[index] = false;
+      }
+      
+      calcularNecesario();
+    }
+
+    function onScaleChange(index) {
+      const scaleInput = document.getElementById(`scale-${index}`);
+      const text = scaleInput.textContent.trim();
+      const val = parseFloat(text.replace(',', '.'));
+
+      if (!isNaN(val)) {
+        userValues[index] = val;
+        isManual[index] = true;
+      } else {
+        userValues[index] = null;
+        isManual[index] = false;
+        document.getElementById(`raw-${index}`).value = '';
+      }
+      
+      calcularNecesario();
+    }
+
+    function calcularNecesario() {
+      let sumaExistente = 0;
+      let llenas = 0;
+      let vaciasIndices = [];
+
+      for (let i = 0; i < 5; i++) {
+        const scaleInput = document.getElementById(`scale-${i}`);
+        
+        if (isManual[i] && userValues[i] !== null) {
+          sumaExistente += userValues[i];
+          llenas++;
+          scaleInput.classList.remove('calculado');
+        } else {
+          vaciasIndices.push(i);
+        }
+      }
+
+      // Limpieza de casillas calculadas anteriormente
+      vaciasIndices.forEach(i => {
+        const input = document.getElementById(`scale-${i}`);
+        input.innerHTML = '';
+        input.classList.remove('calculado');
+      });
+
+      // Cálculo de nota necesaria si hay entre 3 y 4 asignaturas completadas
+      if (llenas >= 3 && vaciasIndices.length > 0 && vaciasIndices.length <= 2) {
+        const totalNecesario = 32.5; // 6.5 * 5
+        const puntosRestantes = totalNecesario - sumaExistente;
+        
+        let notaPorPrueba = puntosRestantes / vaciasIndices.length;
+        if (notaPorPrueba < 0) notaPorPrueba = 0;
+
+        vaciasIndices.forEach(i => {
+          const input = document.getElementById(`scale-${i}`);
+          input.classList.add('calculado');
+
+          if (notaPorPrueba < 5) {
+            const exacta = notaPorPrueba.toFixed(2);
+            input.innerHTML = `5.00 <span class="exact-note">(${exacta}+)</span>`;
+          } else {
+            input.textContent = notaPorPrueba.toFixed(2);
+          }
+        });
+      }
+    }
+  </script>
+</body>
+</html>

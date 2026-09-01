@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Conversor sobre 26 a base 10</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 30px;
+      background-color: #f4f7f6;
+      display: flex;
+      justify-content: center;
+    }
+    .conversor-container {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      background: white;
+      padding: 20px 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    select, input {
+      width: 100px;
+      padding: 8px;
+      font-size: 16px;
+      text-align: center;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    input {
+      background-color: #f9f9f9;
+    }
+    .flecha {
+      font-size: 1.2em;
+      color: #666;
+    }
+
+    /* Clases de estilos según rangos */
+    .negrita {
+      font-weight: bold;
+      color: #000;
+    }
+    .azul-negrita {
+      font-weight: bold;
+      color: blue;
+    }
+    .rojo {
+      color: red;
+      font-weight: normal;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="conversor-container">
+    <!-- Menú desplegable -->
+    <select id="notaBruta" onchange="convertirNota()">
+      <option value="">-</option>
+    </select>
+
+    <span class="flecha">→</span>
+
+    <!-- Casilla resultado -->
+    <input type="text" id="notaEscala" readonly placeholder="0.0">
+  </div>
+
+  <script>
+    const totalMax = 26;
+    const select = document.getElementById('notaBruta');
+    const output = document.getElementById('notaEscala');
+
+    // Orden específico: 13 a 26 y luego 12 a 0
+    const ordenNotas = [];
+    for (let i = 13; i <= 26; i++) ordenNotas.push(i);
+    for (let i = 12; i >= 0; i--) ordenNotas.push(i);
+
+    // Obtener estilo exacto según el valor
+    function getEstiloClase(num) {
+      if (num >= 13 && num <= 16) {
+        return 'negrita';       // 13 a 16: Negro negrita
+      } else if (num >= 17) {
+        return 'azul-negrita';  // 17 al 26: Azul negrita
+      } else if (num <= 12) {
+        return 'rojo';          // 12 al 0: Rojo normal
+      }
+    }
+
+    // Generar opciones con sus estilos correspondientes
+    ordenNotas.forEach(num => {
+      const opt = document.createElement('option');
+      opt.value = num;
+      opt.textContent = num;
+      opt.className = getEstiloClase(num);
+      select.appendChild(opt);
+    });
+
+    function convertirNota() {
+      const val = select.value;
+      
+      // Limpia estilos previos
+      select.className = '';
+      output.className = '';
+
+      if (val === "") {
+        output.value = "";
+      } else {
+        const num = parseInt(val, 10);
+        const notaConvertida = (num / totalMax) * 10;
+        output.value = notaConvertida.toFixed(1);
+
+        // Aplicar la clase de estilo activa al select y al input resultado
+        const clase = getEstiloClase(num);
+        select.classList.add(clase);
+        output.classList.add(clase);
+      }
+    }
+  </script>
+
+</body>
+</html>
